@@ -1,6 +1,13 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C)]
+pub struct float16_t {
+    pub v: u16,
+}
+
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[repr(C)]
 pub struct float32_t {
     pub v: u32,
 }
@@ -71,6 +78,20 @@ impl float64_t {
     #[inline]
     #[must_use]
     pub const fn to_bits(self) -> u64 {
+        self.v
+    }
+}
+
+impl float16_t {
+    #[inline]
+    #[must_use]
+    pub const fn from_bits(v: u16) -> Self {
+        Self { v }
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn to_bits(self) -> u16 {
         self.v
     }
 }

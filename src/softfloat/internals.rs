@@ -33,7 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =============================================================================*/
 
+use crate::softfloat::float16_t;
+
 use super::types::{float32_t, float64_t};
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub union ui16_f16 {
+    pub ui: u16,
+    pub f: float16_t,
+}
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -47,6 +56,51 @@ pub union ui32_f32 {
 pub union ui64_f64 {
     pub ui: u64,
     pub f: float64_t,
+}
+
+//#define signF16UI( a ) ((bool) ((uint16_t) (a)>>15))
+#[inline]
+#[must_use]
+pub const fn signF16UI(a: u16) -> bool {
+    (a >> 15) != 0
+}
+
+//#define expF16UI( a ) ((int_fast8_t) ((a)>>10) & 0x1F)
+#[inline]
+#[must_use]
+pub const fn expF16UI(a: u16) -> i8 {
+    ((a >> 10) & 0x1F) as i8
+}
+
+//#define fracF16UI( a ) ((a) & 0x03FF)
+#[inline]
+#[must_use]
+pub const fn fracF16UI(a: u16) -> u16 {
+    a & 0x03FF
+}
+
+//#define packToF16UI( sign, exp, sig ) (((uint16_t) (sign)<<15) + ((uint16_t) (exp)<<10) + (sig))
+#[inline]
+#[must_use]
+pub const fn packToF16UI(sign: bool, exp: i8, sig: u16) -> u16 {
+    ((sign as u16) << 15)
+        .wrapping_add(((exp as u16) << 10))
+        .wrapping_add(sig)
+}
+
+#[inline]
+#[must_use]
+pub const fn packToF16(sign: bool, exp: i8, sig: u16) -> float16_t {
+    float16_t {
+        v: packToF16UI(sign, exp, sig),
+    }
+}
+
+//#define isNaNF16UI( a ) (((~(a) & 0x7C00) == 0) && ((a) & 0x03FF))
+#[inline]
+#[must_use]
+pub const fn isNaNF16UI(a: u16) -> bool {
+    ((!(a & 0x7C00) == 0) && (a & 0x03FF) != 0)
 }
 
 //#define signF32UI( a ) ((bool) ((uint32_t) (a)>>31))

@@ -76,6 +76,22 @@ impl commonNaN {
 }
 
 /*----------------------------------------------------------------------------
+| The bit pattern for a default generated 16-bit floating-point NaN.
+*----------------------------------------------------------------------------*/
+pub const defaultNaNF16UI: u16 = 0x7E00;
+
+/*----------------------------------------------------------------------------
+| Returns true when 16-bit unsigned integer 'uiA' has the bit pattern of a
+| 16-bit floating-point signaling NaN.
+| Note:  This macro evaluates its argument more than once.
+*----------------------------------------------------------------------------*/
+#[inline]
+#[must_use]
+pub const fn softfloat_isSigNaNF16UI(uiA: u16) -> bool {
+    (((uiA) & 0x7E00) == 0x7C00) && ((uiA) & 0x01FF) != 0
+}
+
+/*----------------------------------------------------------------------------
 | The bit pattern for a default generated 32-bit floating-point NaN.
 *----------------------------------------------------------------------------*/
 pub const defaultNaNF32UI: u32 = 0x7FC0_0000;

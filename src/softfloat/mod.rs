@@ -19,6 +19,7 @@
     clippy::if_not_else
 )]
 
+mod f16_add;
 mod f32_add;
 mod f32_classify;
 mod f32_div;
@@ -103,6 +104,11 @@ mod ui64_to_f32;
 mod ui64_to_f64;
 
 mod internals;
+mod s_addMagsF16;
+mod s_countLeadingZeros16;
+mod s_normRoundPackToF16;
+mod s_roundPackToF16;
+mod s_subMagsF16;
 pub use internals::*;
 
 mod riscv;
@@ -127,6 +133,7 @@ pub const softfloat_round_max: u8 = 3;
 pub const softfloat_round_near_maxMag: u8 = 4;
 pub const softfloat_round_odd: u8 = 6;
 
+pub use f16_add::f16_add;
 pub use f32_add::f32_add;
 pub use f32_classify::f32_classify;
 pub use f32_div::f32_div;
@@ -173,12 +180,14 @@ pub use i32_to_f32::i32_to_f32;
 pub use i32_to_f64::i32_to_f64;
 pub use i64_to_f32::i64_to_f32;
 pub use i64_to_f64::i64_to_f64;
+pub use s_addMagsF16::softfloat_addMagsF16;
 pub use s_addMagsF32::softfloat_addMagsF32;
 pub use s_addMagsF64::softfloat_addMagsF64;
 pub use s_approxRecip32_1::softfloat_approxRecip32_1;
 pub use s_approxRecipSqrt32_1::softfloat_approxRecipSqrt32_1;
 pub use s_approxRecipSqrt_1Ks::softfloat_approxRecipSqrt_1k0s;
 pub use s_approxRecipSqrt_1Ks::softfloat_approxRecipSqrt_1k1s;
+pub use s_countLeadingZeros16::softfloat_countLeadingZeros16;
 pub use s_countLeadingZeros32::softfloat_countLeadingZeros32;
 pub use s_countLeadingZeros64::softfloat_countLeadingZeros64;
 
@@ -188,10 +197,12 @@ pub use s_approxRecip_1Ks::softfloat_approxRecip_1k1s;
 pub use s_mul64To128::softfloat_mul64To128;
 pub use s_mulAddF32::softfloat_mulAddF32;
 pub use s_mulAddF64::softfloat_mulAddF64;
+pub use s_normRoundPackToF16::softfloat_normRoundPackToF16;
 pub use s_normRoundPackToF32::softfloat_normRoundPackToF32;
 pub use s_normRoundPackToF64::softfloat_normRoundPackToF64;
 pub use s_normSubnormalF32Sig::softfloat_normSubnormalF32Sig;
 pub use s_normSubnormalF64Sig::softfloat_normSubnormalF64Sig;
+pub use s_roundPackToF16::softfloat_roundPackToF16;
 pub use s_roundPackToF32::*;
 pub use s_roundPackToF64::softfloat_roundPackToF64;
 pub use s_roundToI32::softfloat_roundToI32;
@@ -206,6 +217,7 @@ pub use s_shortShiftLeft128::softfloat_shortShiftLeft128;
 pub use s_shortShiftRightJam128::softfloat_shortShiftRightJam128;
 pub use s_shortShiftRightJam64::softfloat_shortShiftRightJam64;
 pub use s_sub128::softfloat_sub128;
+pub use s_subMagsF16::softfloat_subMagsF16;
 pub use s_subMagsF32::softfloat_subMagsF32;
 pub use s_subMagsF64::softfloat_subMagsF64;
 pub use ui32_to_f32::ui32_to_f32;

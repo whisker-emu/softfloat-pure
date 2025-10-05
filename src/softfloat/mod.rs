@@ -108,6 +108,7 @@ mod ui64_to_f64;
 
 mod f16_eq;
 mod f16_eq_signaling;
+mod f16_isSignalingNaN;
 mod f16_sub;
 mod internals;
 mod s_addMagsF16;
@@ -144,6 +145,7 @@ pub use f16_classify::f16_classify;
 pub use f16_div::f16_div;
 pub use f16_eq::f16_eq;
 pub use f16_eq_signaling::f16_eq_signaling;
+pub use f16_isSignalingNaN::f16_isSignalingNaN;
 pub use f16_sub::f16_sub;
 pub use f32_add::f32_add;
 pub use f32_classify::f32_classify;

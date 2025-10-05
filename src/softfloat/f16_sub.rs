@@ -1,5 +1,6 @@
 use super::{float16_t, signF16UI, softfloat_addMagsF16, softfloat_subMagsF16};
 
+#[inline]
 #[must_use]
 pub const fn f16_sub(
     a: float16_t,

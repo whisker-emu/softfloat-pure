@@ -1,5 +1,6 @@
 use super::{float16_t, isNaNF16UI, signF16UI, softfloat_flag_invalid};
 
+#[inline]
 #[must_use]
 pub const fn f16_lt(a: float16_t, b: float16_t) -> (bool, u8) {
     if isNaNF16UI(a.v) || isNaNF16UI(b.v) {

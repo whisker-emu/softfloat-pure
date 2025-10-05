@@ -2,6 +2,7 @@ use crate::softfloat::{
     float16_t, packToF16UI, softfloat_countLeadingZeros16, softfloat_roundPackToF16,
 };
 
+#[inline]
 #[must_use]
 pub const fn softfloat_normRoundPackToF16(
     sign: bool,

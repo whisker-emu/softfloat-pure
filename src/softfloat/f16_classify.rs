@@ -1,5 +1,6 @@
 use super::{expF16UI, float16_t, fracF16UI, isNaNF16UI, signF16UI, softfloat_isSigNaNF16UI};
 
+#[inline]
 #[must_use]
 pub const fn f16_classify(a: float16_t) -> u16 {
     let infOrNaN = expF16UI(a.v) == 0x1F;

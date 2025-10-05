@@ -116,6 +116,7 @@ mod s_countLeadingZeros16;
 mod s_normRoundPackToF16;
 mod s_roundPackToF16;
 mod s_subMagsF16;
+mod f16_le_quiet;
 pub use internals::*;
 
 mod riscv;
@@ -146,6 +147,7 @@ pub use f16_div::f16_div;
 pub use f16_eq::f16_eq;
 pub use f16_eq_signaling::f16_eq_signaling;
 pub use f16_isSignalingNaN::f16_isSignalingNaN;
+pub use f16_le_quiet::f16_le_quiet;
 pub use f16_sub::f16_sub;
 pub use f32_add::f32_add;
 pub use f32_classify::f32_classify;

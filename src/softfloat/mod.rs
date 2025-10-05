@@ -118,6 +118,8 @@ mod s_roundPackToF16;
 mod s_subMagsF16;
 mod f16_le_quiet;
 mod f16_le;
+mod f16_lt_quiet;
+mod f16_lt;
 pub use internals::*;
 
 mod riscv;
@@ -149,6 +151,8 @@ pub use f16_eq::f16_eq;
 pub use f16_eq_signaling::f16_eq_signaling;
 pub use f16_isSignalingNaN::f16_isSignalingNaN;
 pub use f16_le_quiet::f16_le_quiet;
+pub use f16_lt_quiet::f16_lt_quiet;
+pub use f16_lt::f16_lt;
 pub use f16_le::f16_le;
 pub use f16_sub::f16_sub;
 pub use f32_add::f32_add;

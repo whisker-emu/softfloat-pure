@@ -109,6 +109,7 @@ mod s_countLeadingZeros16;
 mod s_normRoundPackToF16;
 mod s_roundPackToF16;
 mod s_subMagsF16;
+mod f16_sub;
 pub use internals::*;
 
 mod riscv;
@@ -134,6 +135,7 @@ pub const softfloat_round_near_maxMag: u8 = 4;
 pub const softfloat_round_odd: u8 = 6;
 
 pub use f16_add::f16_add;
+pub use f16_sub::f16_sub;
 pub use f32_add::f32_add;
 pub use f32_classify::f32_classify;
 pub use f32_div::f32_div;

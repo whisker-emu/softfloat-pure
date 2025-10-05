@@ -113,6 +113,7 @@ mod s_normRoundPackToF16;
 mod s_roundPackToF16;
 mod s_subMagsF16;
 mod f16_sub;
+mod f16_eq_signaling;
 pub use internals::*;
 
 mod riscv;
@@ -140,6 +141,7 @@ pub const softfloat_round_odd: u8 = 6;
 pub use f16_add::f16_add;
 pub use f16_classify::f16_classify;
 pub use f16_div::f16_div;
+pub use f16_eq_signaling::f16_eq_signaling;
 pub use f16_sub::f16_sub;
 pub use f32_add::f32_add;
 pub use f32_classify::f32_classify;

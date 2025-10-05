@@ -28,6 +28,13 @@ pub struct uint128 {
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
+pub struct exp8_sig16 {
+    pub exp: i8,
+    pub sig: u16,
+}
+
+#[derive(Copy, Clone, Debug)]
+#[repr(C)]
 pub struct exp16_sig32 {
     pub exp: i16,
     pub sig: u32,

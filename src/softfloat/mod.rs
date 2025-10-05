@@ -20,6 +20,7 @@
 )]
 
 mod f16_add;
+mod f16_div;
 mod f32_add;
 mod f32_classify;
 mod f32_div;
@@ -76,6 +77,7 @@ mod s_approxRecip_1Ks;
 mod s_countLeadingZeros32;
 mod s_countLeadingZeros64;
 mod s_mul64To128;
+mod s_normSubnormalF16Sig;
 mod s_mulAddF32;
 mod s_mulAddF64;
 mod s_normRoundPackToF32;
@@ -135,6 +137,7 @@ pub const softfloat_round_near_maxMag: u8 = 4;
 pub const softfloat_round_odd: u8 = 6;
 
 pub use f16_add::f16_add;
+pub use f16_div::f16_div;
 pub use f16_sub::f16_sub;
 pub use f32_add::f32_add;
 pub use f32_classify::f32_classify;
@@ -202,6 +205,7 @@ pub use s_mulAddF64::softfloat_mulAddF64;
 pub use s_normRoundPackToF16::softfloat_normRoundPackToF16;
 pub use s_normRoundPackToF32::softfloat_normRoundPackToF32;
 pub use s_normRoundPackToF64::softfloat_normRoundPackToF64;
+pub use s_normSubnormalF16Sig::softfloat_normSubnormalF16Sig;
 pub use s_normSubnormalF32Sig::softfloat_normSubnormalF32Sig;
 pub use s_normSubnormalF64Sig::softfloat_normSubnormalF64Sig;
 pub use s_roundPackToF16::softfloat_roundPackToF16;

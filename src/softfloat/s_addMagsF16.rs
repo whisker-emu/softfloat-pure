@@ -137,34 +137,16 @@ pub const fn softfloat_addMagsF16(
             let sigZ = sigZ >> 4;
             return (packToF16(signZ, expZ, sigZ), 0);
         }
-        return softfloat_roundPackToF16(
-            signZ,
-            expZ as i16,
-            sigZ,
-            roundingMode,
-            detectTininess,
-        );
+        return softfloat_roundPackToF16(signZ, expZ as i16, sigZ, roundingMode, detectTininess);
     }
     let sigZ = (sig32Z >> 16) as u16;
     if (sig32Z & 0xFFFF) != 0 {
         let sigZ = sigZ | 1;
-        return softfloat_roundPackToF16(
-            signZ,
-            expZ as i16,
-            sigZ,
-            roundingMode,
-            detectTininess,
-        );
+        return softfloat_roundPackToF16(signZ, expZ as i16, sigZ, roundingMode, detectTininess);
     }
     if (sigZ & 0xF) == 0 && (expZ < 0x1E) {
         let sigZ = sigZ >> 4;
         return (packToF16(signZ, expZ, sigZ), 0);
     }
-    return softfloat_roundPackToF16(
-        signZ,
-        expZ as i16,
-        sigZ,
-        roundingMode,
-        detectTininess,
-    );
+    return softfloat_roundPackToF16(signZ, expZ as i16, sigZ, roundingMode, detectTininess);
 }

@@ -3,9 +3,9 @@ use crate::softfloat::softfloat_propagateNaNF16;
 use super::{
     defaultNaNF16UI, expF16UI, float16_t, fracF16UI, packToF16, packToF16UI, signF16UI,
     softfloat_countLeadingZeros16, softfloat_countLeadingZeros32, softfloat_flag_inexact,
-    softfloat_flag_invalid, softfloat_propagateNaNF16UI, softfloat_round_max,
-    softfloat_round_min, softfloat_round_minMag, softfloat_round_near_even, softfloat_round_odd,
-    softfloat_roundPackToF16,
+    softfloat_flag_invalid, softfloat_propagateNaNF16UI, softfloat_roundPackToF16,
+    softfloat_round_max, softfloat_round_min, softfloat_round_minMag, softfloat_round_near_even,
+    softfloat_round_odd,
 };
 
 #[must_use]
@@ -27,19 +27,11 @@ pub const fn softfloat_subMagsF16(
             if (sigA | sigB) != 0 {
                 return softfloat_propagateNaNF16(uiA, uiB);
             }
-            return (
-                float16_t {
-                    v: defaultNaNF16UI,
-                },
-                softfloat_flag_invalid,
-            );
+            return (float16_t { v: defaultNaNF16UI }, softfloat_flag_invalid);
         }
         let mut sigDiff = (sigA as i16).wrapping_sub(sigB as i16);
         if sigDiff == 0 {
-            return (
-                packToF16(roundingMode == softfloat_round_min, 0, 0),
-                0,
-            );
+            return (packToF16(roundingMode == softfloat_round_min, 0, 0), 0);
         }
         if expA != 0 {
             expA = expA.wrapping_sub(1);
@@ -55,10 +47,7 @@ pub const fn softfloat_subMagsF16(
             shiftDist = expA as i8;
             expZ = 0;
         }
-        return (
-            packToF16(signZ, expZ, (sigDiff << shiftDist) as u16),
-            0,
-        );
+        return (packToF16(signZ, expZ, (sigDiff << shiftDist) as u16), 0);
     }
     // --------------------------------------------------------------------
     let mut signZ = signF16UI(uiA);
@@ -144,23 +133,11 @@ pub const fn softfloat_subMagsF16(
     let mut sigZ = (sig32Z >> 16) as u16;
     if (sig32Z & 0xFFFF) != 0 {
         sigZ |= 1;
-        return softfloat_roundPackToF16(
-            signZ,
-            expZ as i16,
-            sigZ,
-            roundingMode,
-            detectTininess,
-        );
+        return softfloat_roundPackToF16(signZ, expZ as i16, sigZ, roundingMode, detectTininess);
     }
     if (sigZ & 0xF) == 0 && ((expZ as u32) < 0x1E) {
         sigZ >>= 4;
         return (packToF16(signZ, expZ, sigZ), 0);
     }
-    return softfloat_roundPackToF16(
-        signZ,
-        expZ as i16,
-        sigZ,
-        roundingMode,
-        detectTininess,
-    );
+    return softfloat_roundPackToF16(signZ, expZ as i16, sigZ, roundingMode, detectTininess);
 }

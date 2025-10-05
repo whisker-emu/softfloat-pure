@@ -20,6 +20,7 @@
 )]
 
 mod f16_add;
+mod f16_classify;
 mod f16_div;
 mod f32_add;
 mod f32_classify;
@@ -137,6 +138,7 @@ pub const softfloat_round_near_maxMag: u8 = 4;
 pub const softfloat_round_odd: u8 = 6;
 
 pub use f16_add::f16_add;
+pub use f16_classify::f16_classify;
 pub use f16_div::f16_div;
 pub use f16_sub::f16_sub;
 pub use f32_add::f32_add;

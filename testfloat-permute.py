@@ -41,7 +41,7 @@ ROUND_MODES = ['rnear_even', 'rminMag', 'rmin', 'rmax', 'rnear_maxMag']
 TININESS = ['tininessbefore', 'tininessafter']
 EXACT = ['exact', 'notexact']
 INT_TYPES = ['ui32', 'ui64', 'i32', 'i64']
-FP_TYPES = ['f32', 'f64']
+FP_TYPES = ['f16', 'f32', 'f64']
 FP_OPS = ['roundToInt', 'add', 'sub', 'mul', 'mulAdd', 'div', 'rem', 'sqrt',
           'eq', 'le', 'lt', 'eq_signaling', 'le_quiet', 'lt_quiet', 'to']
 

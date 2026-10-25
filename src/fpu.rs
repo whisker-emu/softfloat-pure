@@ -4,8 +4,9 @@ use core::borrow::Borrow;
 
 use super::{
     softfloat::{
-        float32_t, float64_t, i32_to_f32, i32_to_f64, i64_to_f32, i64_to_f64, init_detectTininess,
-        ui32_to_f32, ui32_to_f64, ui64_to_f32, ui64_to_f64,
+        float16_t, float32_t, float64_t, i32_to_f16, i32_to_f32, i32_to_f64, i64_to_f16,
+        i64_to_f32, i64_to_f64, init_detectTininess, ui32_to_f16, ui32_to_f32, ui32_to_f64,
+        ui64_to_f16, ui64_to_f32, ui64_to_f64,
     },
     wrapper::{ExceptionFlags, Float, RoundingMode, TininessMode},
 };
@@ -106,6 +107,16 @@ impl FPU {
         T: Borrow<F>,
     {
         self.flagged(a.borrow().to_f64(rnd, self.detect_tininess))
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_f16<F, T>(&mut self, a: T, rnd: RoundingMode) -> float16_t
+    where
+        F: Float,
+        T: Borrow<F>,
+    {
+        self.flagged(a.borrow().to_f16(rnd, self.detect_tininess))
     }
 
     #[inline]
@@ -281,15 +292,13 @@ impl FPU {
         let fs1_nan = fs1_val.is_nan();
         if fs1_nan && fs2_nan {
             F::from_bits(F::DEFAULT_NAN)
-        }
-        else {
-            let is_lt = self.lt_quiet::<F,&F>(fs2_val, fs1_val);
-            let is_eq = self.eq::<F,&F>(fs2_val, fs1_val);
+        } else {
+            let is_lt = self.lt_quiet::<F, &F>(fs2_val, fs1_val);
+            let is_eq = self.eq::<F, &F>(fs2_val, fs1_val);
             let greater = is_lt || (is_eq && (fs1_val.is_positive() || !fs2_val.is_positive()));
             if greater || fs2_nan {
                 F::from_bits(fs1_val.to_bits())
-            }
-            else {
+            } else {
                 F::from_bits(fs2_val.to_bits())
             }
         }
@@ -308,18 +317,42 @@ impl FPU {
         let fs1_nan = fs1_val.is_nan();
         if fs1_nan && fs2_nan {
             F::from_bits(F::DEFAULT_NAN)
-        }
-        else {
-            let is_lt = self.lt_quiet::<F,&F>(fs1_val, fs2_val);
-            let is_eq = self.eq::<F,&F>(fs1_val, fs2_val);
+        } else {
+            let is_lt = self.lt_quiet::<F, &F>(fs1_val, fs2_val);
+            let is_eq = self.eq::<F, &F>(fs1_val, fs2_val);
             let less = is_lt || (is_eq && !fs1_val.is_positive());
             if less || fs2_nan {
                 F::from_bits(fs1_val.to_bits())
-            }
-            else {
+            } else {
                 F::from_bits(fs2_val.to_bits())
             }
         }
+    }
+}
+
+impl FPU {
+    #[inline]
+    #[must_use]
+    pub fn f16_from_i64(&mut self, a: i64, rnd: RoundingMode) -> float16_t {
+        self.flagged(i64_to_f16(a, rnd.to_softfloat(), self.detect_tininess))
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn f16_from_i32(&mut self, a: i32, rnd: RoundingMode) -> float16_t {
+        self.flagged(i32_to_f16(a, rnd.to_softfloat(), self.detect_tininess))
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn f16_from_u64(&mut self, a: u64, rnd: RoundingMode) -> float16_t {
+        self.flagged(ui64_to_f16(a, rnd.to_softfloat(), self.detect_tininess))
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn f16_from_u32(&mut self, a: u32, rnd: RoundingMode) -> float16_t {
+        self.flagged(ui32_to_f16(a, rnd.to_softfloat(), self.detect_tininess))
     }
 }
 
@@ -418,11 +451,26 @@ mod tests {
         let mut fpu = FPU::default();
 
         // Test with infinities
-        assert_eq!(get_f32(fpu.max(make_f32(f32::INFINITY), make_f32(1.0))), f32::INFINITY);
-        assert_eq!(get_f32(fpu.max(make_f32(1.0), make_f32(f32::INFINITY))), f32::INFINITY);
-        assert_eq!(get_f32(fpu.max(make_f32(f32::NEG_INFINITY), make_f32(1.0))), 1.0);
-        assert_eq!(get_f32(fpu.max(make_f32(1.0), make_f32(f32::NEG_INFINITY))), 1.0);
-        assert_eq!(get_f32(fpu.max(make_f32(f32::INFINITY), make_f32(f32::NEG_INFINITY))), f32::INFINITY);
+        assert_eq!(
+            get_f32(fpu.max(make_f32(f32::INFINITY), make_f32(1.0))),
+            f32::INFINITY
+        );
+        assert_eq!(
+            get_f32(fpu.max(make_f32(1.0), make_f32(f32::INFINITY))),
+            f32::INFINITY
+        );
+        assert_eq!(
+            get_f32(fpu.max(make_f32(f32::NEG_INFINITY), make_f32(1.0))),
+            1.0
+        );
+        assert_eq!(
+            get_f32(fpu.max(make_f32(1.0), make_f32(f32::NEG_INFINITY))),
+            1.0
+        );
+        assert_eq!(
+            get_f32(fpu.max(make_f32(f32::INFINITY), make_f32(f32::NEG_INFINITY))),
+            f32::INFINITY
+        );
 
         // Test with NaN
         let nan = f32::NAN;
@@ -470,11 +518,26 @@ mod tests {
         let mut fpu = FPU::default();
 
         // Test with infinities
-        assert_eq!(get_f32(fpu.min(make_f32(f32::INFINITY), make_f32(1.0))), 1.0);
-        assert_eq!(get_f32(fpu.min(make_f32(1.0), make_f32(f32::INFINITY))), 1.0);
-        assert_eq!(get_f32(fpu.min(make_f32(f32::NEG_INFINITY), make_f32(1.0))), f32::NEG_INFINITY);
-        assert_eq!(get_f32(fpu.min(make_f32(1.0), make_f32(f32::NEG_INFINITY))), f32::NEG_INFINITY);
-        assert_eq!(get_f32(fpu.min(make_f32(f32::INFINITY), make_f32(f32::NEG_INFINITY))), f32::NEG_INFINITY);
+        assert_eq!(
+            get_f32(fpu.min(make_f32(f32::INFINITY), make_f32(1.0))),
+            1.0
+        );
+        assert_eq!(
+            get_f32(fpu.min(make_f32(1.0), make_f32(f32::INFINITY))),
+            1.0
+        );
+        assert_eq!(
+            get_f32(fpu.min(make_f32(f32::NEG_INFINITY), make_f32(1.0))),
+            f32::NEG_INFINITY
+        );
+        assert_eq!(
+            get_f32(fpu.min(make_f32(1.0), make_f32(f32::NEG_INFINITY))),
+            f32::NEG_INFINITY
+        );
+        assert_eq!(
+            get_f32(fpu.min(make_f32(f32::INFINITY), make_f32(f32::NEG_INFINITY))),
+            f32::NEG_INFINITY
+        );
 
         // Test with NaN
         let nan = f32::NAN;
@@ -525,10 +588,22 @@ mod tests {
         let mut fpu = FPU::default();
 
         // Test with infinities
-        assert_eq!(get_f64(fpu.min(make_f64(f64::INFINITY), make_f64(1.0))), 1.0);
-        assert_eq!(get_f64(fpu.min(make_f64(1.0), make_f64(f64::INFINITY))), 1.0);
-        assert_eq!(get_f64(fpu.min(make_f64(f64::NEG_INFINITY), make_f64(1.0))), f64::NEG_INFINITY);
-        assert_eq!(get_f64(fpu.min(make_f64(1.0), make_f64(f64::NEG_INFINITY))), f64::NEG_INFINITY);
+        assert_eq!(
+            get_f64(fpu.min(make_f64(f64::INFINITY), make_f64(1.0))),
+            1.0
+        );
+        assert_eq!(
+            get_f64(fpu.min(make_f64(1.0), make_f64(f64::INFINITY))),
+            1.0
+        );
+        assert_eq!(
+            get_f64(fpu.min(make_f64(f64::NEG_INFINITY), make_f64(1.0))),
+            f64::NEG_INFINITY
+        );
+        assert_eq!(
+            get_f64(fpu.min(make_f64(1.0), make_f64(f64::NEG_INFINITY))),
+            f64::NEG_INFINITY
+        );
 
         // Test with NaN
         let nan = f64::NAN;

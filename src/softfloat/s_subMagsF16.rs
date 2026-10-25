@@ -65,7 +65,7 @@ pub const fn softfloat_subMagsF16(
         }
         if expDiff <= -13 {
             let uiZ = packToF16UI(signZ, expB, sigB);
-            if (expA | (sigA as i8)) != 0 {
+            if (expA != 0 || sigA != 0) {
                 // --------------------------------------------------------
                 let mut flags = softfloat_flag_inexact;
                 let mut result_uiZ = uiZ;
@@ -91,41 +91,42 @@ pub const fn softfloat_subMagsF16(
         sigX = sigB | 0x0400;
         sigY = sigA.wrapping_add(if expA != 0 { 0x0400 } else { sigA });
         expDiff = expDiff.wrapping_neg();
-    }
-    // --------------------------------------------------------------------
-    let uiZ = uiA;
-    if expA == 0x1F {
-        if sigA != 0 {
-            return softfloat_propagateNaNF16(uiA, uiB);
-        }
-        return (float16_t { v: uiZ }, 0);
-    }
-    if 13 <= expDiff {
-        if (expB | (sigB as i8)) != 0 {
-            // ------------------------------------------------------------
-            let mut flags = softfloat_flag_inexact;
-            let mut result_uiZ = uiZ;
-            if roundingMode != softfloat_round_near_even {
-                if roundingMode == softfloat_round_minMag
-                    || (roundingMode
-                        == if signF16UI(result_uiZ) {
-                            softfloat_round_max
-                        } else {
-                            softfloat_round_min
-                        })
-                {
-                    result_uiZ = result_uiZ.wrapping_sub(1);
-                } else if roundingMode == softfloat_round_odd {
-                    result_uiZ = (result_uiZ.wrapping_sub(1)) | 1;
-                }
+    } else {
+        // --------------------------------------------------------------------
+        let uiZ = uiA;
+        if expA == 0x1F {
+            if sigA != 0 {
+                return softfloat_propagateNaNF16(uiA, uiB);
             }
-            return (float16_t { v: result_uiZ }, flags);
+            return (float16_t { v: uiZ }, 0);
         }
-        return (float16_t { v: uiZ }, 0);
+        if 13 <= expDiff {
+            if (expB != 0 || sigB != 0) {
+                // ------------------------------------------------------------
+                let mut flags = softfloat_flag_inexact;
+                let mut result_uiZ = uiZ;
+                if roundingMode != softfloat_round_near_even {
+                    if roundingMode == softfloat_round_minMag
+                        || (roundingMode
+                            == if signF16UI(result_uiZ) {
+                                softfloat_round_max
+                            } else {
+                                softfloat_round_min
+                            })
+                    {
+                        result_uiZ = result_uiZ.wrapping_sub(1);
+                    } else if roundingMode == softfloat_round_odd {
+                        result_uiZ = (result_uiZ.wrapping_sub(1)) | 1;
+                    }
+                }
+                return (float16_t { v: result_uiZ }, flags);
+            }
+            return (float16_t { v: uiZ }, 0);
+        }
+        expZ = (expB as i8) + 19;
+        sigX = sigA | 0x0400;
+        sigY = sigB.wrapping_add(if expB != 0 { 0x0400 } else { sigB });
     }
-    expZ = (expB as i8) + 19;
-    sigX = sigA | 0x0400;
-    sigY = sigB.wrapping_add(if expB != 0 { 0x0400 } else { sigB });
     let mut sig32Z = ((sigX as u32) << expDiff).wrapping_sub(sigY as u32);
     let shiftDist = (softfloat_countLeadingZeros32(sig32Z) as i8).wrapping_sub(1);
     sig32Z <<= shiftDist;

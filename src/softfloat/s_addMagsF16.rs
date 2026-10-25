@@ -54,7 +54,7 @@ pub const fn softfloat_addMagsF16(
         }
         if expDiff <= -13 {
             let uiZ = packToF16UI(signZ, expB, sigB);
-            if (expA | (sigA as i8)) != 0 {
+            if (expA != 0 || sigA != 0) {
                 let mut flags = softfloat_flag_inexact;
                 let mut result_uiZ = uiZ;
                 if roundingMode != softfloat_round_near_even {
@@ -90,7 +90,7 @@ pub const fn softfloat_addMagsF16(
             return (float16_t { v: uiZ }, 0);
         }
         if 13 <= expDiff {
-            if (expB | (sigB as i8)) != 0 {
+            if (expB != 0 || sigB != 0) {
                 let mut flags = softfloat_flag_inexact;
                 let mut result_uiZ = uiZ;
                 if roundingMode != softfloat_round_near_even {

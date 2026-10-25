@@ -9,7 +9,7 @@ use num_traits::{
 };
 
 use super::super::{
-    float32_t, float64_t,
+    float16_t, float32_t, float64_t,
     softfloat::{
         softfloat_flag_inexact, softfloat_flag_infinite, softfloat_flag_invalid,
         softfloat_flag_overflow, softfloat_flag_underflow, softfloat_round_max,
@@ -202,6 +202,8 @@ pub trait Float: Sized {
     fn to_i32(&self, rnd: RoundingMode, exact: bool) -> (i32, u8);
 
     fn to_i64(&self, rnd: RoundingMode, exact: bool) -> (i64, u8);
+
+    fn to_f16(&self, rnd: RoundingMode, detect_tininess: u8) -> (float16_t, u8);
 
     fn to_f32(&self, rnd: RoundingMode, detect_tininess: u8) -> (float32_t, u8);
 

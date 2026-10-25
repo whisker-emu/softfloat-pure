@@ -6,7 +6,7 @@ use std::process::exit;
 use std::str::FromStr;
 
 use softfloat_pure::wrapper::{Float, RoundingMode, TininessMode};
-use softfloat_pure::{float32_t, float64_t, FPU};
+use softfloat_pure::{float16_t, float32_t, float64_t, FPU};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum IntType {
@@ -32,6 +32,7 @@ impl FromStr for IntType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FloatType {
+    F16,
     F32,
     F64,
 }
@@ -41,6 +42,7 @@ impl FromStr for FloatType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "f16" => Ok(Self::F16),
             "f32" => Ok(Self::F32),
             "f64" => Ok(Self::F64),
             _ => Err(format!("Unknown float type: {s}")),
@@ -193,6 +195,7 @@ fn print_usage() {
     println!("    i64              --Signed 64-bit integer.");
     println!();
     println!("  <float>:");
+    println!("    f16              --Binary 16-bit floating-point (half-precision).");
     println!("    f32              --Binary 32-bit floating-point (single-precision).");
     println!("    f64              --Binary 64-bit floating-point (double-precision).");
     println!();
@@ -302,6 +305,38 @@ fn display_flags(flags: u8, prefix: &str) {
 
 fn display_float(float_type: FloatType, v: u64, prefix: &str) {
     match float_type {
+        FloatType::F16 => {
+            #[allow(clippy::cast_possible_truncation)]
+            let f = float16_t::from_bits(v as u16);
+            println!("{prefix}bits: {:016b}", f.to_bits());
+            println!("{prefix}hex: {:4x}", f.to_bits());
+            let (wide, _) = f.to_f32(
+                RoundingMode::RneTiesToEven,
+                TininessMode::After.to_softfloat(),
+            );
+            println!("{prefix}value: {}", f32::from_bits(wide.to_bits()));
+            println!("{prefix}fraction: {}", f.fraction());
+            println!("{prefix}exponent: {}", f.exponent());
+            println!("{prefix}is_nan: {}", f.is_nan());
+            println!("{prefix}is_zero: {}", f.is_zero());
+            println!("{prefix}is_subnormal: {}", f.is_subnormal());
+            println!("{prefix}is_positive: {}", f.is_positive());
+            println!("{prefix}is_negative: {}", f.is_negative());
+            println!("{prefix}is_negative_zero: {}", f.is_negative_zero());
+            println!(
+                "{prefix}is_negative_subnormal: {}",
+                f.is_negative_subnormal()
+            );
+            println!("{prefix}is_negative_normal: {}", f.is_negative_normal());
+            println!("{prefix}is_negative_infinity: {}", f.is_negative_infinity());
+            println!("{prefix}is_positive_zero: {}", f.is_positive_zero());
+            println!(
+                "{prefix}is_positive_subnormal: {}",
+                f.is_positive_subnormal()
+            );
+            println!("{prefix}is_positive_normal: {}", f.is_positive_normal());
+            println!("{prefix}is_positive_infinity: {}", f.is_positive_infinity());
+        }
         FloatType::F32 => {
             #[allow(clippy::cast_possible_truncation)]
             let f = float32_t::from_bits(v as u32);
@@ -536,6 +571,10 @@ fn parse_hex_u8(hex_str: &str) -> Result<u8, String> {
         .map_err(|e| format!("Failed to parse hex value '{hex_str}': {e}"))
 }
 
+const fn asf16(v: u64) -> float16_t {
+    float16_t { v: v as u16 }
+}
+
 const fn asf32(v: u64) -> float32_t {
     #[allow(clippy::cast_possible_truncation)]
     float32_t { v: v as u32 }
@@ -556,6 +595,15 @@ fn process_single_operand(fpu: &mut FPU, config: &TestConfig, input: u64) -> Res
     match &config.test_type {
         TestType::SingleOperand(op) => match op {
             SingleOperandFn::ConvertIntToFloat(int_type, float_type) => match float_type {
+                FloatType::F16 => Ok(u64::from(
+                    match int_type {
+                        IntType::Ui32 => fpu.f16_from_u32(input as u32, rnd),
+                        IntType::Ui64 => fpu.f16_from_u64(input, rnd),
+                        IntType::I32 => fpu.f16_from_i32(input as u32 as i32, rnd),
+                        IntType::I64 => fpu.f16_from_i64(input as i64, rnd),
+                    }
+                    .to_bits(),
+                )),
                 FloatType::F32 => Ok(u64::from(
                     match int_type {
                         IntType::Ui32 => fpu.f32_from_u32(input as u32, rnd),
@@ -574,6 +622,15 @@ fn process_single_operand(fpu: &mut FPU, config: &TestConfig, input: u64) -> Res
                 .to_bits()),
             },
             SingleOperandFn::ConvertFloatToInt(float_type, int_type) => match float_type {
+                FloatType::F16 => {
+                    let f = asf16(input);
+                    Ok(match int_type {
+                        IntType::Ui32 => u64::from(fpu.to_u32(f, rnd, exact)),
+                        IntType::Ui64 => fpu.to_u64(f, rnd, exact),
+                        IntType::I32 => u64::from(fpu.to_i32(f, rnd, exact) as u32),
+                        IntType::I64 => fpu.to_i64(f, rnd, exact) as u64,
+                    })
+                }
                 FloatType::F32 => {
                     let f = asf32(input);
                     Ok(match int_type {
@@ -595,6 +652,16 @@ fn process_single_operand(fpu: &mut FPU, config: &TestConfig, input: u64) -> Res
             },
             SingleOperandFn::ConvertFloatToFloat(src_type, dest_type) => {
                 match (src_type, dest_type) {
+                    (FloatType::F16, FloatType::F32) => {
+                        Ok(u64::from(fpu.to_f32(asf16(input), rnd).to_bits()))
+                    }
+                    (FloatType::F16, FloatType::F64) => Ok(fpu.to_f64(asf16(input), rnd).to_bits()),
+                    (FloatType::F32, FloatType::F16) => {
+                        Ok(u64::from(fpu.to_f16(asf32(input), rnd).to_bits()))
+                    }
+                    (FloatType::F64, FloatType::F16) => {
+                        Ok(u64::from(fpu.to_f16(asf64(input), rnd).to_bits()))
+                    }
                     (FloatType::F32, FloatType::F64) => Ok(fpu.to_f64(asf32(input), rnd).to_bits()),
                     (FloatType::F64, FloatType::F32) => {
                         Ok(u64::from(fpu.to_f32(asf64(input), rnd).to_bits()))
@@ -605,12 +672,16 @@ fn process_single_operand(fpu: &mut FPU, config: &TestConfig, input: u64) -> Res
                 }
             }
             SingleOperandFn::RoundToInt(float_type) => match float_type {
+                FloatType::F16 => Ok(u64::from(
+                    fpu.round_to_int(asf16(input), rnd, exact).to_bits(),
+                )),
                 FloatType::F32 => Ok(u64::from(
                     fpu.round_to_int(asf32(input), rnd, exact).to_bits(),
                 )),
                 FloatType::F64 => Ok(fpu.round_to_int(asf64(input), rnd, exact).to_bits()),
             },
             SingleOperandFn::Sqrt(float_type) => match float_type {
+                FloatType::F16 => Ok(u64::from(fpu.sqrt(asf16(input), rnd).to_bits())),
                 FloatType::F32 => Ok(u64::from(fpu.sqrt(asf32(input), rnd).to_bits())),
                 FloatType::F64 => Ok(fpu.sqrt(asf64(input), rnd).to_bits()),
             },
@@ -629,46 +700,57 @@ fn process_two_operands(
     match &config.test_type {
         TestType::TwoOperands(float_type, op) => Ok(match op {
             DualOperandFn::Add => match float_type {
+                FloatType::F16 => u64::from(fpu.add(asf16(input1), asf16(input2), rnd).to_bits()),
                 FloatType::F32 => u64::from(fpu.add(asf32(input1), asf32(input2), rnd).to_bits()),
                 FloatType::F64 => fpu.add(asf64(input1), asf64(input2), rnd).to_bits(),
             },
             DualOperandFn::Sub => match float_type {
+                FloatType::F16 => u64::from(fpu.sub(asf16(input1), asf16(input2), rnd).to_bits()),
                 FloatType::F32 => u64::from(fpu.sub(asf32(input1), asf32(input2), rnd).to_bits()),
                 FloatType::F64 => fpu.sub(asf64(input1), asf64(input2), rnd).to_bits(),
             },
             DualOperandFn::Mul => match float_type {
+                FloatType::F16 => u64::from(fpu.mul(asf16(input1), asf16(input2), rnd).to_bits()),
                 FloatType::F32 => u64::from(fpu.mul(asf32(input1), asf32(input2), rnd).to_bits()),
                 FloatType::F64 => fpu.mul(asf64(input1), asf64(input2), rnd).to_bits(),
             },
             DualOperandFn::Div => match float_type {
+                FloatType::F16 => u64::from(fpu.div(asf16(input1), asf16(input2), rnd).to_bits()),
                 FloatType::F32 => u64::from(fpu.div(asf32(input1), asf32(input2), rnd).to_bits()),
                 FloatType::F64 => fpu.div(asf64(input1), asf64(input2), rnd).to_bits(),
             },
             DualOperandFn::Rem => match float_type {
+                FloatType::F16 => u64::from(fpu.rem(asf16(input1), asf16(input2), rnd).to_bits()),
                 FloatType::F32 => u64::from(fpu.rem(asf32(input1), asf32(input2), rnd).to_bits()),
                 FloatType::F64 => fpu.rem(asf64(input1), asf64(input2), rnd).to_bits(),
             },
             DualOperandFn::Eq => match float_type {
+                FloatType::F16 => u64::from(fpu.eq(asf16(input1), asf16(input2))),
                 FloatType::F32 => u64::from(fpu.eq(asf32(input1), asf32(input2))),
                 FloatType::F64 => u64::from(fpu.eq(asf64(input1), asf64(input2))),
             },
             DualOperandFn::Le => match float_type {
+                FloatType::F16 => u64::from(fpu.le(asf16(input1), asf16(input2))),
                 FloatType::F32 => u64::from(fpu.le(asf32(input1), asf32(input2))),
                 FloatType::F64 => u64::from(fpu.le(asf64(input1), asf64(input2))),
             },
             DualOperandFn::Lt => match float_type {
+                FloatType::F16 => u64::from(fpu.lt(asf16(input1), asf16(input2))),
                 FloatType::F32 => u64::from(fpu.lt(asf32(input1), asf32(input2))),
                 FloatType::F64 => u64::from(fpu.lt(asf64(input1), asf64(input2))),
             },
             DualOperandFn::EqSignaling => match float_type {
+                FloatType::F16 => u64::from(fpu.eq_signaling(asf16(input1), asf16(input2))),
                 FloatType::F32 => u64::from(fpu.eq_signaling(asf32(input1), asf32(input2))),
                 FloatType::F64 => u64::from(fpu.eq_signaling(asf64(input1), asf64(input2))),
             },
             DualOperandFn::LeQuiet => match float_type {
+                FloatType::F16 => u64::from(fpu.le_quiet(asf16(input1), asf16(input2))),
                 FloatType::F32 => u64::from(fpu.le_quiet(asf32(input1), asf32(input2))),
                 FloatType::F64 => u64::from(fpu.le_quiet(asf64(input1), asf64(input2))),
             },
             DualOperandFn::LtQuiet => match float_type {
+                FloatType::F16 => u64::from(fpu.lt_quiet(asf16(input1), asf16(input2))),
                 FloatType::F32 => u64::from(fpu.lt_quiet(asf32(input1), asf32(input2))),
                 FloatType::F64 => u64::from(fpu.lt_quiet(asf64(input1), asf64(input2))),
             },
@@ -688,6 +770,13 @@ fn process_three_operands(
     match &config.test_type {
         TestType::ThreeOperands(float_type, op) => match op {
             TriOperandFn::MulAdd => Ok(match float_type {
+                FloatType::F16 => (
+                    FloatType::F16,
+                    u64::from(
+                        fpu.mul_add(asf16(input1), asf16(input2), asf16(input3), rnd)
+                            .to_bits(),
+                    ),
+                ),
                 FloatType::F32 => (
                     FloatType::F32,
                     u64::from(

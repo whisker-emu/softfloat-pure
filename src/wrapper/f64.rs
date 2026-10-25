@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crate::softfloat::defaultNaNF64UI;
+use crate::softfloat::{defaultNaNF64UI, f64_to_f16, float16_t};
 
 use super::super::softfloat::{
     f64_add, f64_div, f64_eq, f64_eq_signaling, f64_isSignalingNaN, f64_le, f64_le_quiet, f64_lt,
@@ -153,6 +153,10 @@ impl Float for float64_t {
 
     fn round_to_integral(&self, rnd: RoundingMode, exact: bool) -> (Self, u8) {
         f64_roundToInt(*self, rnd.to_softfloat(), exact)
+    }
+
+    fn to_f16(&self, rnd: RoundingMode, detect_tininess: u8) -> (float16_t, u8) {
+        f64_to_f16(*self, rnd.to_softfloat(), detect_tininess)
     }
 
     fn to_f32(&self, rnd: RoundingMode, detect_tininess: u8) -> (float32_t, u8) {

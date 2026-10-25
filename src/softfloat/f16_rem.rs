@@ -86,7 +86,7 @@ pub const fn f16_rem(
 
         q32 >>= !(expDiff as u16) & 31;
         q = q32 as u16;
-        rem = (rem.wrapping_shl((expDiff as u32).wrapping_add(30)))
+        rem = ((rem as u32).wrapping_shl((expDiff as i32 + 30) as u32) as u16)
             .wrapping_sub(q.wrapping_mul(sigB));
     }
 

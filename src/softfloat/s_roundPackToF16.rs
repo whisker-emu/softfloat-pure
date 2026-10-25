@@ -26,7 +26,7 @@ pub const fn softfloat_roundPackToF16(
 
         roundIncrement = if roundingMode == x { 0xF } else { 0 };
     }
-    let roundBits = (sig & 0xF) as u8;
+    let mut roundBits = (sig & 0xF) as u8;
 
     if 0x1D <= (exp as u32) {
         if exp < 0 {
@@ -36,7 +36,7 @@ pub const fn softfloat_roundPackToF16(
 
             sig = softfloat_shiftRightJam32(sig as u32, exp.wrapping_neg() as u16) as u16;
             exp = 0;
-            let roundBits = (sig & 0xF) as u8;
+            roundBits = (sig & 0xF) as u8;
 
             if isTiny && roundBits != 0 {
                 flags |= softfloat_flag_underflow;

@@ -100,7 +100,7 @@ pub const fn packToF16(sign: bool, exp: i8, sig: u16) -> float16_t {
 #[inline]
 #[must_use]
 pub const fn isNaNF16UI(a: u16) -> bool {
-    ((!(a & 0x7C00) == 0) && (a & 0x03FF) != 0)
+    ((!a & 0x7C00) == 0) && ((a & 0x03FF) != 0)
 }
 
 //#define signF32UI( a ) ((bool) ((uint32_t) (a)>>31))

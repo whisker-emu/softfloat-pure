@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 pub mod common;
+pub mod f16;
 pub mod f32;
 pub mod f64;
 

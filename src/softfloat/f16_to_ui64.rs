@@ -1,8 +1,8 @@
 use crate::softfloat::softfloat_roundToUI64;
 
 use super::{
-    expF16UI, float16_t, fracF16UI, signF16UI, softfloat_flag_invalid, softfloat_roundToUI32,
-    ui64_fromNaN, ui64_fromNegOverflow, ui64_fromPosOverflow,
+    expF16UI, float16_t, fracF16UI, signF16UI, softfloat_flag_invalid, ui64_fromNaN,
+    ui64_fromNegOverflow, ui64_fromPosOverflow,
 };
 
 #[must_use]
@@ -41,7 +41,7 @@ pub const fn f16_to_ui64(a: float16_t, roundingMode: u8, exact: bool) -> (u64, u
     return softfloat_roundToUI64(
         sign,
         (sig32.wrapping_shr(12)) as u64,
-        (sig32.wrapping_shr(52)) as u64,
+        (sig32 as u64) << 52,
         roundingMode,
         exact,
     );
